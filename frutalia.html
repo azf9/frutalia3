@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Frutalia - Pedidos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f6f6;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #34a853;
+    }
+    form, .registros {
+      max-width: 500px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #34a853;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    .mensaje {
+      text-align: center;
+      color: #34a853;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+    .registro {
+      border-bottom: 1px solid #eee;
+      padding: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Frutalia 🍹</h1>
+
+  <form id="pedidoForm">
+    <label for="nombre">Nombre del cliente</label>
+    <input type="text" id="nombre" name="nombre" required />
+
+    <label for="telefono">Teléfono</label>
+    <input type="tel" id="telefono" name="telefono" required />
+
+    <label for="sabor">Sabor del jugo</label>
+    <select id="sabor" name="sabor" required>
+      <option value="">Seleccione</option>
+      <option value="Naranja">Naranja</option>
+      <option value="Mango">Mango</option>
+      <option value="Fresa">Fresa</option>
+      <option value="Piña">Piña</option>
+    </select>
+
+    <label for="tamano">Tamaño</label>
+    <select id="tamano" name="tamano" required>
+      <option value="">Seleccione</option>
+      <option value="Chico">Chico</option>
+      <option value="Mediano">Mediano</option>
+      <option value="Grande">Grande</option>
+    </select>
+
+    <label for="comentarios">Comentarios adicionales</label>
+    <textarea id="comentarios" name="comentarios" rows="3"></textarea>
+
+    <button type="submit">Enviar Pedido</button>
+    <div class="mensaje" id="mensaje"></div>
+  </form>
+
+  <div class="registros">
+    <h2>Pedidos recientes</h2>
+    <div id="listaRegistros"></div>
+  </div>
+
+  <script>
+    const formulario = document.getElementById('pedidoForm');
+    const mensaje = document.getElementById('mensaje');
+    const listaRegistros = document.getElementById('listaRegistros');
+
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzR6QTByk-puM-YXRDl9cE6ZLCCYC-4W6MrszC-dia_sgT7iRPeiOtqMj321GaSLy6Y/exec';
+
+    formulario.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const datos = {
+        nombre: formulario.nombre.value,
+        telefono: formulario.telefono.value,
+        sabor: formulario.sabor.value,
+        tamano: formulario.tamano.value,
+        comentarios: formulario.comentarios.value
+      };
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify(datos),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (res.ok) {
+          mensaje.textContent = "Tu pedido ha sido enviado con éxito, pasa a recogerlo en 10 minutos. ¡Frutalia agradece tu preferencia!";
+          formulario.reset();
+          cargarRegistros();
+        } else {
+          mensaje.textContent = "Hubo un error. Intenta nuevamente.";
+        }
+      } catch (error) {
+        mensaje.textContent = "Error de conexión con el servidor.";
+      }
+    });
+
+    async function cargarRegistros() {
+      try {
+        const res = await fetch(API_URL);
+        const datos = await res.json();
+        listaRegistros.innerHTML = datos.map(reg => `
+          <div class="registro">
+            <strong>${reg.nombre}</strong> pidió un jugo de <strong>${reg.sabor}</strong> tamaño <strong>${reg.tamano}</strong><br/>
+            <small>🗓 ${new Date(reg.fecha).toLocaleString()}</small>
+          </div>
+        `).join('');
+      } catch (error) {
+        listaRegistros.innerHTML = "<p style='color: red;'>No se pudieron cargar los registros.</p>";
+      }
+    }
+
+    cargarRegistros();
+  </script>
+</body>
+</html>
